@@ -1,10 +1,38 @@
+let carX = 50;
+let vroom;
 
 function setup(){
-  CreateCanvas(500,500);
-  background(19,0,0);
-}
-
-function draw() {
+  createCanvas(500, 500);
 
 
 }
+
+	function draw() {
+	background(119, 0, 0, 15);
+
+			if (carX >500) {
+			carX =- 50;
+		} else if (carX>200) {
+			carX +=100;
+	} else {
+		carX += 3;
+	}
+		fill(0);
+	stroke(255);
+	strokeWeight(5);
+	ellipse(carX ,325, 30, 20, 20);
+	ellipse(carX, 325, 30 ,120 ,20);
+
+		if (carX >500) {
+			carX =- 50;
+		} else if (carX>250) {
+			carX +=100;
+	} else {
+		carX += 3;
+	}
+
+		//draw race car
+		noStroke();
+		fill(40, 50, 250);
+		rect(carX, 300, 50, 30);
+	}	
