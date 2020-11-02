@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<title> Shooters Sky High</title>
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <em><font color="white"> <p> This was my first intent in making a game from scratch. At first I wanted to recreate something such as Galaga but soonly realized that I lacked many skills to do so. I was becoming frustrated with the many errors I was encountering and it became overwhelming. I decided to keep it simple and told myself that my skills will improve as I went. After 3 weeks of watching youtube videos, reading coding forums, and trial and error. I was able to create my masterpiece. It’s simple and there are still many things I would love to add. Such as a score keeper, enemy attacks, sound effects, and a game restart. I know my game won't win game of the year but I definitely never have felt so excited to accomplish something that was difficult to complete. </p></font></em>
+<em><font color="white"><h1>Shooters Sky High</h1> </font></em>
+<em><font color="white">  <h2>Click to shoot, Press A and D to move</h2></font></em>
+
+
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+        <meta charset="utf-8">
+
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+        <style media="screen">
+
+
+            canvas {
+                background-color: #89CFF0;
+                border: 5px solid #120;
+
+
+            span {
+                color: red;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <script type="text/javascript">
+
+            const canvas = document.createElement("canvas");
+            const WIDTH = 400, HEIGHT = 500;
+            const ctx = canvas.getContext("2d");
+            const bW = 5, bH = 4, bS = 35;
+            const KEYS = {
+                LEFT: 65,
+                RIGHT: 68
+            }
+            var stopped = false;
+            var input = new inputHandeler();
+            var player = new Player((WIDTH-32)/2, HEIGHT - 2*32, 12, 12, 6);
+            var bullets = [], enemies = [];
+
+            function init(){
+
+                let eR = 3;
+                let eC = 6;
+                let posX = 15;
+                let posY = 10;
+                for (var i = 0; i < eR; i++) {
+                    for (var k = 0; k < eC; k++) {
+                        enemies.push( new Enemy(posX, posY, 32, 32, 20, "white") )
+                        posX += 48;
+                    }
+                    posY += 48;
+                    posX = 15;
+                }
+                canvas.addEventListener('mousedown', function() {
+                    player.shoot();
+                })
+                var loop = setInterval(function() {
+                    if(!stopped) {
+                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                        update();
+                        draw();
+                    }
+                }, 1000/30);
+            }
+            function config(){
+                canvas.width = WIDTH;
+                canvas.height = HEIGHT;
+                document.body.appendChild(canvas);
+                init();
+            }
+            function draw(){
+                player.draw();
+                for (var i = 0; i < bullets.length; i++) {
+                    bullets[i].draw();
+                }
+                for (var i = 0; i < enemies.length; i++) {
+                    enemies[i].draw();
+                }
+            }
+            function update(){
+                if(Win()) {
+                    stopped = true;
+                    $('canvas').css({"opacity":0.5})
+                    $('.win').css({"display":"block"})
+                }
+                if(GameOver()) {
+                    stopped = true;
+                    $('canvas').css({"opacity":0.5})
+                    $('.gameOver').css({"display":"block"})
+                }
+                player.update();
+                for (var i = 0; i < bullets.length; i++) {
+                    bullets[i].update();
+                }
+            }
+
+            function Player(x, y, w, h, s) {
+                this.x = x;
+                this.y = y;
+                this.width = w;
+                this.height = h;
+                this.speed = s;
+                this.lifes = 3;
+            }
+            Player.prototype.draw = function () {
+                ctx.beginPath()
+                ctx.fillStyle = "white"
+                ctx.fillRect(this.x, this.y, this.width, this.height)
+            };
+            Player.prototype.update = function () {
+                if(input.isDown(KEYS.RIGHT)) this.x += this.speed;
+                if(input.isDown(KEYS.LEFT)) this.x -= this.speed;
+            };
+            Player.prototype.shoot = function () {
+                bullets.push( new Bullet(this.x + (this.width/2-5), this.y - 7, bW, bH, bS, "red") );
+            };
+            function Bullet(x, y, w, h, s, c, t = "") {
+                this.x = x;
+                this.y = y;
+                this.width = w;
+                this.height = h;
+                this.speed = s;
+                this.color = c;
+                this.type = t;
+            }
+            Bullet.prototype.draw = function () {
+                ctx.beginPath()
+                ctx.fillStyle = this.color
+                ctx.fillRect(this.x, this.y, this.width, this.height)
+            };
+            Bullet.prototype.update = function () {
+                this.y -= this.speed;
+                if(AABB(this.x, this.y, this.width, this.height, player.x, player.y, player.width, player.height)) {
+                    this.width = null;
+                    this.x = -10;
+                    player.lifes--;
+                    player.width -= 6;
+                    player.height -= 6;
+                }
+                for (var i = 0; i < enemies.length; i++) {
+                    if(AABB(this.x, this.y, this.width, this.height, enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height) && this.type != "e") {
+                        this.width = null;
+                        this.x = -10;
+                        enemies.splice(i, 1)
+                    }
+                }
+            };
+            function Enemy(x, y, w, h, v, c) {
+                this.x = x;
+                this.y = y;
+                this.width = w;
+                this.height = h;
+                this.vel = v;
+                this.color = c;
+                this.mTick = 1;
+            }
+            Enemy.prototype.draw = function () {
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            };
+            Enemy.prototype.shoot = function() {
+                bullets.push( new Bullet(this.x + (this.width-bW)/2, this.y + this.height + 1, bW, bH, -bS, "red", "e") );
+            }
+            Enemy.prototype.moveE = function() {
+                if(this.mTick % 7 == 0) {
+                    this.y += this.height;
+                    this.vel *= -1;
+                }
+                this.x += this.vel;
+                this.mTick++;
+            }
+            var shootInterval = setInterval(function() {
+
+            }, 450);
+            var moveInterval = setInterval(function() {
+                for (var j = 0; j < enemies.length; j++) {
+                    enemies[j].moveE();
+                }
+            }, 1200);
+
+            function random(min, max) {
+                return (Math.floor(Math.random() * max) + min) > max ? max : Math.floor(Math.random() * max) + min;
+            }
+            function AABB(ax, ay, aw, ah, bx, by, bw, bh) {
+                return ax<bx+bw && ay<by+bh && bx<ax+aw && by<ay+ah;
+            }
+            function inputHandeler() {
+                this.down = {};
+                this.pressed = {};
+                var _this = this;
+                document.addEventListener("keydown", function (evt) {
+                    _this.down[evt.keyCode] = true;
+                });
+                document.addEventListener("keyup", function (evt) {
+                    delete _this.down[evt.keyCode];
+                    delete _this.pressed[evt.keyCode];
+                });
+            };
+            inputHandeler.prototype.isDown = function(code) {
+                return this.down[code];
+            };
+            inputHandeler.prototype.isPressed = function(code) {
+                if(this.pressed[code]) {
+                    return false;
+                } else if(this.down[code]) {
+                    return this.pressed[code] = true;
+                }
+                return false;
+            };
+            function GameOver() {
+                return player.lifes <= 0 || enemies[0].y >= player.y;
+            }
+            function Win() {
+                return enemies.length == 0;
+            }
+            config();
+        </script>
+
+
+        <div class="links">
+
+          <a href="index.html">HomePage</a>
+          <!-- line break -->
+          <br>
+
+        </div>
